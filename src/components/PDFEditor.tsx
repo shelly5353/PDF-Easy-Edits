@@ -327,6 +327,45 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
     }
   };
 
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      setError('אנא בחר קובץ PDF בלבד');
+      return;
+    }
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      setModifiedPdfBytes(new Uint8Array(arrayBuffer));
+      setError(null);
+    } catch (err) {
+      setError('שגיאה בטעינת הקובץ. אנא נסה שוב.');
+    }
+  };
+
+  if (!pdfBytes) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 bg-gray-900 rounded-xl shadow-lg">
+        {error && (
+          <div className="mb-6 p-4 bg-red-950 border border-red-800 text-red-100 rounded-md">
+            {error}
+          </div>
+        )}
+        <label className="cursor-pointer bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900">
+          <span className="text-lg">בחר קובץ PDF</span>
+          <input
+            type="file"
+            accept=".pdf,application/pdf"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </label>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full min-h-screen bg-gray-950">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-gray-950">

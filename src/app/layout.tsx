@@ -13,9 +13,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="he" dir="rtl">
-      <body className="font-sans">
-        <main>
+    <html lang="he" dir="rtl" className="bg-gray-950">
+      <body className="font-sans bg-gray-950 text-gray-100 min-h-screen">
+        <main className="container mx-auto px-4 py-8 bg-gray-950 min-h-screen">
           {children}
         </main>
       </body>
