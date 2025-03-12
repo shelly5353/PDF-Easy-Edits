@@ -328,8 +328,8 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   };
 
   return (
-    <div className="w-full max-h-screen overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+    <div className="w-full max-h-screen overflow-hidden bg-gray-950">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full p-4 bg-gray-950">
         {/* Settings form */}
         <div className="overflow-y-auto p-4 bg-gray-900 rounded-xl">
           {error && (
@@ -743,7 +743,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
             {pdfBytes && (
               <div className="w-full h-full overflow-auto bg-gray-800 rounded-lg p-4">
                 <Document
-                  file={modifiedPdfBytes || pdfBytes}
+                  file={new Blob([modifiedPdfBytes || pdfBytes], { type: 'application/pdf' })}
                   onLoadSuccess={onDocumentLoadSuccess}
                   onLoadError={onDocumentLoadError}
                   loading={
@@ -752,12 +752,15 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                     </div>
                   }
                 >
-                  <Page
-                    pageNumber={pageNumber}
-                    width={Math.min(window.innerWidth * 0.4, 800)}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                  />
+                  <div className="bg-gray-800 p-4 rounded-lg">
+                    <Page
+                      pageNumber={pageNumber}
+                      width={Math.min(window.innerWidth * 0.4, 800)}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                      className="bg-gray-800"
+                    />
+                  </div>
                 </Document>
                 {numPages && numPages > 1 && (
                   <div className="flex justify-center items-center gap-4 mt-4">
