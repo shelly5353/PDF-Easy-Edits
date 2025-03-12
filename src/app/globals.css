@@ -4,7 +4,7 @@
 
 :root {
   --foreground-rgb: 229, 231, 235;
-  --background-rgb: 17, 24, 39;
+  --background-rgb: 3, 7, 18;
 }
 
 body {
@@ -27,10 +27,10 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: rgb(31, 41, 55);
+  background-color: rgb(17, 24, 39);
   padding: 2rem;
   border-radius: 0.75rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
 
 .react-pdf__Document {
@@ -42,8 +42,8 @@ body {
 .react-pdf__Page {
   margin: 1rem auto;
   padding: 1rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+  background-color: rgb(31, 41, 55);
 }
 
 .react-pdf__Page canvas {
@@ -72,8 +72,8 @@ body {
 /* Form Elements */
 input[type="text"],
 input[type="number"] {
-  background-color: rgb(31, 41, 55);
-  border: 1px solid rgb(75, 85, 99);
+  background-color: rgb(17, 24, 39);
+  border: 1px solid rgb(55, 65, 81);
   color: rgb(229, 231, 235);
 }
 
@@ -96,18 +96,18 @@ button:hover {
 }
 
 button:disabled {
-  background-color: rgb(75, 85, 99);
+  background-color: rgb(55, 65, 81);
   cursor: not-allowed;
 }
 
 /* Error Messages */
 .error-message {
   color: rgb(248, 113, 113);
-  background-color: rgba(248, 113, 113, 0.1);
-  border: 1px solid rgb(248, 113, 113);
+  background-color: rgb(127, 29, 29);
+  border: 1px solid rgb(185, 28, 28);
 }
 
 /* Loading States */
 .loading-overlay {
-  background-color: rgba(17, 24, 39, 0.75);
+  background-color: rgba(3, 7, 18, 0.75);
 } 

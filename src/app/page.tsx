@@ -63,19 +63,19 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-950">
       <div className="max-w-7xl mx-auto p-4">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-100">עריכת PDF פשוטה</h1>
         
         {!pdfBytes ? (
-          <div className="flex flex-col items-center justify-center p-8 bg-gray-800 rounded-xl shadow-lg">
+          <div className="flex flex-col items-center justify-center p-8 bg-gray-900 rounded-xl shadow-lg">
             <p className="text-gray-300 mb-8">העלה קובץ PDF להוספת מספור עמודים וכותרות</p>
             {error && (
-              <div className="mb-6 p-4 bg-red-900 border border-red-700 text-red-100 rounded-md">
+              <div className="mb-6 p-4 bg-red-950 border border-red-800 text-red-100 rounded-md">
                 {error}
               </div>
             )}
-            <label className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+            <label className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900">
               <span>בחר קובץ PDF</span>
               <input
                 type="file"
