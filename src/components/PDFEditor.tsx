@@ -328,8 +328,8 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   };
 
   return (
-    <div className="w-full max-h-screen overflow-hidden bg-gray-950">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full p-4 bg-gray-950">
+    <div className="w-full min-h-screen bg-gray-950">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-gray-950">
         {/* Settings form */}
         <div className="overflow-y-auto p-4 bg-gray-900 rounded-xl">
           {error && (
@@ -723,7 +723,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
         </div>
 
         {/* PDF Preview */}
-        <div className="h-screen bg-gray-900 rounded-xl p-4 overflow-hidden">
+        <div className="bg-gray-900 rounded-xl p-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium text-gray-100">תצוגה מקדימה</h3>
             <button
@@ -734,16 +734,16 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
               הורד PDF
             </button>
           </div>
-          <div className="w-full h-[calc(100vh-8rem)] relative">
+          <div className="w-full h-[calc(100vh-8rem)] relative bg-gray-800 rounded-lg p-4">
             {isLoading && (
-              <div className="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-10">
+              <div className="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             )}
             {pdfBytes && (
-              <div className="w-full h-full overflow-auto bg-gray-800 rounded-lg p-4">
+              <div className="w-full h-full flex flex-col items-center bg-gray-800 rounded-lg">
                 <Document
-                  file={new Blob([modifiedPdfBytes || pdfBytes], { type: 'application/pdf' })}
+                  file={new Blob([modifiedPdfBytes || pdfBytes])}
                   onLoadSuccess={onDocumentLoadSuccess}
                   onLoadError={onDocumentLoadError}
                   loading={
@@ -752,22 +752,22 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                     </div>
                   }
                 >
-                  <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="bg-gray-800 rounded-lg flex justify-center">
                     <Page
                       pageNumber={pageNumber}
                       width={Math.min(window.innerWidth * 0.4, 800)}
                       renderTextLayer={false}
                       renderAnnotationLayer={false}
-                      className="bg-gray-800"
+                      className="shadow-lg"
                     />
                   </div>
                 </Document>
                 {numPages && numPages > 1 && (
-                  <div className="flex justify-center items-center gap-4 mt-4">
+                  <div className="flex justify-center items-center gap-4 mt-4 w-full">
                     <button
                       onClick={handlePrevPage}
                       disabled={pageNumber <= 1}
-                      className="px-3 py-1 bg-blue-600 text-white rounded-md disabled:bg-gray-600"
+                      className="px-3 py-1 bg-blue-600 text-white rounded-md disabled:bg-gray-700"
                     >
                       הקודם
                     </button>
@@ -777,7 +777,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                     <button
                       onClick={handleNextPage}
                       disabled={pageNumber >= numPages}
-                      className="px-3 py-1 bg-blue-600 text-white rounded-md disabled:bg-gray-600"
+                      className="px-3 py-1 bg-blue-600 text-white rounded-md disabled:bg-gray-700"
                     >
                       הבא
                     </button>
