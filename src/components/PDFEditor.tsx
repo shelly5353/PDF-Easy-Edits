@@ -115,6 +115,9 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   const [modifiedPdfBytes, setModifiedPdfBytes] = useState<Uint8Array | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasChanges, setHasChanges] = useState<boolean>(false);
+  const previewUrlRef = useRef<string | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   
   const defaultValues = {
     pageNumbering: {
@@ -146,31 +149,43 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   
   const watchedValues = watch();
   
-  // Create preview URL from PDF bytes and get number of pages
+  // Watch for form changes
   useEffect(() => {
-    let url: string | null = null;
-    
-    const loadPdf = async () => {
+    setHasChanges(true);
+  }, [watchedValues]);
+  
+  // Cleanup function for URL objects
+  const cleanupUrl = () => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+  };
+
+  // Create initial preview URL from PDF bytes
+  useEffect(() => {
+    const createInitialPreview = async () => {
+      if (!pdfBytes) return;
+      
       try {
-        setError(null);
         const pdfDoc = await PDFDocument.load(pdfBytes);
         setNumPages(pdfDoc.getPageCount());
         
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-        url = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        previewUrlRef.current = url;
         setPreviewUrl(url);
+        setHasChanges(false);
       } catch (error) {
-        console.error('Error loading PDF:', error);
-        setError('שגיאה בטעינת ה-PDF. אנא נסה שוב או בחר קובץ אחר.');
+        console.error('Error creating initial preview:', error);
+        setError('שגיאה בטעינת ה-PDF. אנא ודא שהקובץ תקין ונסה שוב.');
       }
     };
     
-    loadPdf();
+    createInitialPreview();
     
     return () => {
-      if (url) {
-        URL.revokeObjectURL(url);
-      }
+      cleanupUrl();
     };
   }, [pdfBytes]);
 
@@ -285,87 +300,53 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
     }
   };
   
-  const handleDownload = () => {
-    if (modifiedPdfBytes) {
-      onEditComplete(watchedValues, modifiedPdfBytes);
-    }
-  };
-
   const handleApplyChanges = async (data: EditorSettings) => {
+    if (!pdfBytes || !hasChanges) return;
+    
     setIsPreviewLoading(true);
+    setError(null);
+    
     try {
       const modifiedPdf = await applyEdits(data);
       if (modifiedPdf) {
-        // Cleanup old URL before creating a new one
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-        }
+        cleanupUrl();
         
         setModifiedPdfBytes(modifiedPdf);
         const blob = new Blob([modifiedPdf], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
+        previewUrlRef.current = url;
+        
+        // Update iframe src directly to prevent flickering
+        if (iframeRef.current) {
+          iframeRef.current.src = url;
+        }
         setPreviewUrl(url);
+        setHasChanges(false);
       }
     } catch (error) {
       console.error('Error applying changes:', error);
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError('שגיאה בהחלת השינויים');
-      }
+      setError(error instanceof Error ? error.message : 'שגיאה בהחלת השינויים');
     } finally {
       setIsPreviewLoading(false);
     }
   };
-
-  // Update preview when form values change
-  useEffect(() => {
-    const updatePreview = async () => {
-      if (!pdfBytes) return;
-      
-      try {
-        setIsPreviewLoading(true);
-        const modifiedPdf = await applyEdits(watchedValues);
-        if (modifiedPdf) {
-          // Cleanup old URL before creating a new one
-          if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-          }
-          
-          setModifiedPdfBytes(modifiedPdf);
-          const blob = new Blob([modifiedPdf], { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-          setPreviewUrl(url);
-        }
-      } catch (error) {
-        console.error('Error updating preview:', error);
-        if (error instanceof Error) {
-          setError(error.message);
-        } else {
-          setError('שגיאה בעדכון התצוגה המקדימה');
-        }
-      } finally {
-        setIsPreviewLoading(false);
-      }
-    };
-    
-    // Use a debounce to avoid too many updates
-    const debounceTimer = setTimeout(() => {
-      updatePreview();
-    }, 500);
-    
-    return () => {
-      clearTimeout(debounceTimer);
-    };
-  }, [watchedValues, pdfBytes]);
+  
+  const handleDownload = () => {
+    if (modifiedPdfBytes) {
+      onEditComplete(watchedValues, modifiedPdfBytes);
+    } else if (pdfBytes && hasChanges) {
+      // If there are changes but preview wasn't updated, apply changes before download
+      handleApplyChanges(watchedValues);
+    }
+  };
 
   return (
     <div className="w-full max-h-screen overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
         {/* Settings form */}
-        <div className="overflow-y-auto p-4 bg-white rounded-xl">
+        <div className="overflow-y-auto p-4 bg-gray-800 rounded-xl">
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <div className="bg-red-900 border border-red-700 text-red-100 px-4 py-3 rounded relative mb-4" role="alert">
               <strong className="font-bold">שגיאה: </strong>
               <span className="block sm:inline">{error}</span>
             </div>
@@ -375,7 +356,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
             {/* Page Numbering Section */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">מספור עמודים</h3>
+                <h3 className="text-lg font-medium text-gray-100">מספור עמודים</h3>
                 <Controller
                   name="pageNumbering.enabled"
                   control={control}
@@ -383,12 +364,12 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                     <label className="flex items-center">
                       <input
                         type="checkbox"
-                        className="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                        className="rounded border-gray-600 text-blue-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700"
                         checked={value}
                         onChange={(e) => onChange(e.target.checked)}
                         {...field}
                       />
-                      <span className="mr-2 text-sm text-gray-700">הפעל מספור</span>
+                      <span className="mr-2 text-sm text-gray-300">הפעל מספור</span>
                     </label>
                   )}
                 />
@@ -398,7 +379,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                 <>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-200 mb-1">
                         התחל מספור מעמוד
                       </label>
                       <Controller
@@ -409,7 +390,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                             type="number"
                             min={1}
                             max={numPages}
-                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                           />
@@ -417,7 +398,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-200 mb-1">
                         התחל ממספר
                       </label>
                       <Controller
@@ -427,7 +408,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                           <input
                             type="number"
                             min={0}
-                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           />
@@ -437,7 +418,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
                       מיקום המספר
                     </label>
                     <Controller
@@ -445,7 +426,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                       control={control}
                       render={({ field }) => (
                         <select
-                          className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                          className="w-full rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-gray-100"
                           {...field}
                         >
                           {positionOptions.map((option) => (
@@ -460,7 +441,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-200 mb-1">
                         פונט
                       </label>
                       <Controller
@@ -468,7 +449,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         control={control}
                         render={({ field }) => (
                           <select
-                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-gray-100"
                             {...field}
                           >
                             {fontOptions.map((option) => (
@@ -481,7 +462,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-200 mb-1">
                         גודל פונט
                       </label>
                       <Controller
@@ -492,7 +473,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                             type="number"
                             min={8}
                             max={24}
-                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 12)}
                           />
@@ -503,7 +484,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-200 mb-1">
                         צבע
                       </label>
                       <Controller
@@ -512,7 +493,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         render={({ field }) => (
                           <input
                             type="color"
-                            className="w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full h-8 rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700"
                             {...field}
                           />
                         )}
@@ -526,12 +507,12 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                           <label className="flex items-center">
                             <input
                               type="checkbox"
-                              className="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                              className="rounded border-gray-600 text-blue-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700"
                               checked={value}
                               onChange={(e) => onChange(e.target.checked)}
                               {...field}
                             />
-                            <span className="mr-2 text-sm text-gray-700">מודגש</span>
+                            <span className="mr-2 text-sm text-gray-300">מודגש</span>
                           </label>
                         )}
                       />
@@ -544,7 +525,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
             {/* Header Section */}
             <div className="space-y-3 mt-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">כותרת</h3>
+                <h3 className="text-lg font-medium text-gray-100">כותרת</h3>
                 <Controller
                   name="header.enabled"
                   control={control}
@@ -552,12 +533,12 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                     <label className="flex items-center">
                       <input
                         type="checkbox"
-                        className="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                        className="rounded border-gray-600 text-blue-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700"
                         checked={value}
                         onChange={(e) => onChange(e.target.checked)}
                         {...field}
                       />
-                      <span className="mr-2 text-sm text-gray-700">הפעל כותרת</span>
+                      <span className="mr-2 text-sm text-gray-300">הפעל כותרת</span>
                     </label>
                   )}
                 />
@@ -566,7 +547,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
               {watchedValues.header.enabled && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
                       טקסט הכותרת
                     </label>
                     <Controller
@@ -575,7 +556,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                       render={({ field }) => (
                         <textarea
                           rows={2}
-                          className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                          className="w-full rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-gray-100"
                           placeholder="הזן את טקסט הכותרת כאן..."
                           {...field}
                         />
@@ -591,12 +572,12 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         <label className="flex items-center">
                           <input
                             type="checkbox"
-                            className="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="rounded border-gray-600 text-blue-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700"
                             checked={value}
                             onChange={(e) => onChange(e.target.checked)}
                             {...field}
                           />
-                          <span className="mr-2 text-sm text-gray-700">הצג בעמוד הראשון בלבד</span>
+                          <span className="mr-2 text-sm text-gray-300">הצג בעמוד הראשון בלבד</span>
                         </label>
                       )}
                     />
@@ -604,7 +585,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-200 mb-1">
                         מרחק מימין (ס"מ)
                       </label>
                       <Controller
@@ -615,7 +596,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                             type="number"
                             min={0}
                             step={0.1}
-                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 50)}
                           />
@@ -623,7 +604,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-200 mb-1">
                         מרחק מלמעלה (ס"מ)
                       </label>
                       <Controller
@@ -634,7 +615,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                             type="number"
                             min={0}
                             step={0.1}
-                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 50)}
                           />
@@ -645,7 +626,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-200 mb-1">
                         פונט
                       </label>
                       <Controller
@@ -653,7 +634,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         control={control}
                         render={({ field }) => (
                           <select
-                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-gray-100"
                             {...field}
                           >
                             {fontOptions.map((option) => (
@@ -666,7 +647,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-200 mb-1">
                         גודל פונט
                       </label>
                       <Controller
@@ -677,7 +658,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                             type="number"
                             min={8}
                             max={36}
-                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 14)}
                           />
@@ -688,7 +669,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-200 mb-1">
                         צבע
                       </label>
                       <Controller
@@ -697,7 +678,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         render={({ field }) => (
                           <input
                             type="color"
-                            className="w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full h-8 rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700"
                             {...field}
                           />
                         )}
@@ -711,12 +692,12 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                           <label className="flex items-center">
                             <input
                               type="checkbox"
-                              className="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                              className="rounded border-gray-600 text-blue-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700"
                               checked={value}
                               onChange={(e) => onChange(e.target.checked)}
                               {...field}
                             />
-                            <span className="mr-2 text-sm text-gray-700">מודגש</span>
+                            <span className="mr-2 text-sm text-gray-300">מודגש</span>
                           </label>
                         )}
                       />
@@ -730,13 +711,23 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
               <button
                 type="button"
                 onClick={handleDownload}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                disabled={!pdfBytes}
+                className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  !pdfBytes 
+                    ? 'bg-gray-600 cursor-not-allowed text-gray-300' 
+                    : 'bg-green-600 hover:bg-green-700 focus:ring-green-500 text-white'
+                }`}
               >
                 הורד PDF
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                disabled={!hasChanges || !pdfBytes}
+                className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  !hasChanges || !pdfBytes
+                    ? 'bg-gray-600 cursor-not-allowed text-gray-300'
+                    : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white'
+                }`}
               >
                 החל שינויים
               </button>
@@ -745,9 +736,9 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
         </div>
 
         {/* PDF Preview */}
-        <div className="h-screen bg-white rounded-xl p-4">
+        <div className="h-screen bg-gray-800 rounded-xl p-4 overflow-hidden">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-gray-900">תצוגה מקדימה</h3>
+            <h3 className="text-lg font-medium text-gray-100">תצוגה מקדימה</h3>
             <button
               type="button"
               onClick={handleDownload}
@@ -757,19 +748,21 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
             </button>
           </div>
           <div className="w-full h-[calc(100vh-8rem)] relative">
-            {isPreviewLoading ? (
-              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            {isPreviewLoading && (
+              <div className="absolute inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
               </div>
-            ) : previewUrl ? (
+            )}
+            {previewUrl ? (
               <iframe
-                key={previewUrl}
+                ref={iframeRef}
                 src={previewUrl}
-                className="w-full h-full border-0 rounded-lg shadow-sm"
+                className="w-full h-full border-0 rounded-lg shadow-sm bg-white"
                 title="PDF Preview"
+                style={{ opacity: isPreviewLoading ? 0.5 : 1 }}
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="flex items-center justify-center h-full text-gray-400">
                 אנא טען קובץ PDF
               </div>
             )}
