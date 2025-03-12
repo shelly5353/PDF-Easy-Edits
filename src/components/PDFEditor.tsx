@@ -1,17 +1,10 @@
 'use client';
 
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { Tab } from '@headlessui/react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
 import fontkit from '@pdf-lib/fontkit';
-
-// Initialize PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface PDFEditorProps {
   pdfBytes: Uint8Array;
@@ -41,7 +34,8 @@ interface EditorSettings {
 }
 
 const fontOptions = [
-  { value: 'Times-New-Roman', label: 'Times New Roman' },
+  { value: 'Times-New-Roman', label: 'Times New Roman / טיימס ניו רומן' },
+  { value: 'Roboto', label: 'Roboto / רובוטו' },
 ];
 
 const positionOptions = [
@@ -53,6 +47,57 @@ const positionOptions = [
   { value: 'top-left', label: 'שמאל עליון' },
 ];
 
+// Helper function to convert hex color to RGB
+function hexToRgb(hex: string) {
+  // Remove the hash if present
+  hex = hex.replace(/^#/, '');
+  
+  // Parse the hex values
+  const r = parseInt(hex.slice(0, 2), 16) / 255;
+  const g = parseInt(hex.slice(2, 4), 16) / 255;
+  const b = parseInt(hex.slice(4, 6), 16) / 255;
+  
+  return { r, g, b };
+}
+
+// Font loading function
+async function loadCustomFont(pdfDoc: PDFDocument, fontName: string, isBold: boolean = false) {
+  pdfDoc.registerFontkit(fontkit);
+  
+  try {
+    let fontPath: string;
+    
+    switch (fontName) {
+      case 'Roboto':
+        fontPath = isBold ? '/fonts/Roboto-Bold.ttf' : '/fonts/Roboto-Regular.ttf';
+        break;
+      case 'Times-New-Roman':
+        fontPath = '/fonts/times-new-roman.ttf';
+        break;
+      default:
+        throw new Error('Font not found');
+    }
+
+    const fontResponse = await fetch(fontPath);
+    const fontBytes = await fontResponse.arrayBuffer();
+    const font = await pdfDoc.embedFont(fontBytes);
+
+    // Test Hebrew support
+    try {
+      const hebrewTest = 'שלום';
+      font.encodeText(hebrewTest);
+    } catch (error) {
+      console.warn(`Warning: Font ${fontName} might not support Hebrew text properly`);
+    }
+
+    return font;
+  } catch (error) {
+    console.error('Error loading font:', error);
+    // Fallback to standard font if custom font fails
+    return await pdfDoc.embedFont(StandardFonts.TimesRoman);
+  }
+}
+
 export const PDFEditor: React.FC<PDFEditorProps> = ({
   pdfBytes,
   initialSettings,
@@ -60,6 +105,8 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
 }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [modifiedPdfBytes, setModifiedPdfBytes] = useState<Uint8Array | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState<boolean>(false);
   
   const defaultValues = {
     pageNumbering: {
@@ -88,48 +135,48 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   
   const watchedValues = watch();
   
-  // Create preview URL from PDF bytes
+  // Create preview URL from PDF bytes and get number of pages
   useEffect(() => {
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    setPreviewUrl(url);
-    
-    return () => {
-      URL.revokeObjectURL(url);
+    const loadPdf = async () => {
+      try {
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+        setNumPages(pdfDoc.getPageCount());
+        
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        setPreviewUrl(url);
+        
+        return () => {
+          URL.revokeObjectURL(url);
+        };
+      } catch (error) {
+        console.error('Error loading PDF:', error);
+      }
     };
-  }, [pdfBytes]);
-  
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
     
-    // Update max page number if needed
+    loadPdf();
+  }, [pdfBytes]);
+
+  // Cleanup URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, []);
+  
+  // Update max page number if needed
+  useEffect(() => {
     if (watchedValues.pageNumbering.startPage > numPages) {
       setValue('pageNumbering.startPage', numPages);
     }
-  };
+  }, [numPages, watchedValues.pageNumbering.startPage, setValue]);
   
   const applyEdits = async (data: EditorSettings) => {
     try {
-      console.log('Starting PDF edit process with data:', data);
-      
       // Create a new PDF document
       const pdfDoc = await PDFDocument.load(pdfBytes);
-      
-      // Register fontkit for custom font support
-      pdfDoc.registerFontkit(fontkit);
-      
-      // Try to load Times New Roman font, fallback to Helvetica if fails
-      let font;
-      try {
-        // First try to load from our public directory
-        const fontBytes = await fetch('/fonts/times-new-roman.ttf').then(res => res.arrayBuffer());
-        font = await pdfDoc.embedFont(fontBytes);
-        console.log('Successfully loaded Times New Roman font');
-      } catch (fontError) {
-        console.error('Failed to load Times New Roman font, falling back to Helvetica:', fontError);
-        // Fallback to Helvetica
-        font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      }
       
       // Get the pages
       const pages = pdfDoc.getPages();
@@ -139,6 +186,9 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
       
       // Process page numbering
       if (data.pageNumbering.startPage > 0) {
+        // Load font for page numbers
+        const pageNumberFont = await loadCustomFont(pdfDoc, data.pageNumbering.font, data.pageNumbering.isBold);
+        
         // Calculate the starting page index (0-based)
         const startPageIndex = Math.min(data.pageNumbering.startPage - 1, pages.length - 1);
         let currentNumber = data.pageNumbering.startNumber;
@@ -156,7 +206,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
           const pageNumberText = currentNumber.toString();
           
           // Calculate the width of the text
-          const textWidth = font.widthOfTextAtSize(pageNumberText, data.pageNumbering.fontSize);
+          const textWidth = pageNumberFont.widthOfTextAtSize(pageNumberText, data.pageNumbering.fontSize);
           
           // Calculate the position based on the selected position
           let x = 0;
@@ -183,7 +233,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
             x,
             y,
             size: data.pageNumbering.fontSize,
-            font,
+            font: pageNumberFont,
             color: rgbColor,
           });
           
@@ -195,6 +245,9 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
       // Process header
       if (data.header.text && data.header.text.trim()) {
         try {
+          // Load font for header
+          const headerFont = await loadCustomFont(pdfDoc, data.header.font, data.header.isBold);
+          
           // Parse the color
           const color = hexToRgb(data.header.color);
           const rgbColor = rgb(color.r, color.g, color.b);
@@ -210,7 +263,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
           for (const page of pagesToProcess) {
             const { width, height } = page.getSize();
             
-            // Split the header text into lines and handle RTL
+            // Split the header text into lines
             const lines = data.header.text.trim().split('\n');
             
             // Calculate the starting Y position
@@ -222,24 +275,19 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
               
               // Check if the line contains Hebrew
               const containsHebrew = /[\u0590-\u05FF]/.test(line);
-              
-              // Calculate text width for positioning
-              const textWidth = font.widthOfTextAtSize(line, data.header.fontSize);
+              const textWidth = headerFont.widthOfTextAtSize(line, data.header.fontSize);
               
               // Calculate X position (right-aligned for Hebrew, left-aligned for English)
-              let x;
-              if (containsHebrew) {
-                x = width - marginRight - textWidth;
-              } else {
-                x = marginRight;
-              }
+              let x = containsHebrew ? 
+                width - marginRight - textWidth : 
+                marginRight;
               
               // Draw the text
               page.drawText(line, {
                 x: Math.max(0, x),
                 y,
                 size: data.header.fontSize,
-                font,
+                font: headerFont,
                 color: rgbColor,
               });
               
@@ -255,25 +303,53 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
       
       // Save the modified PDF
       const modifiedPdfBytes = await pdfDoc.save();
-      
-      // Call the callback with the modified PDF
-      onEditComplete(data, modifiedPdfBytes);
+      return modifiedPdfBytes;
       
     } catch (error) {
       console.error('Error applying edits:', error);
       alert(error instanceof Error ? error.message : 'אירעה שגיאה בעריכת ה-PDF. אנא נסה שנית או בחר קובץ אחר.');
+      return null;
     }
   };
   
+  const handleDownload = () => {
+    if (modifiedPdfBytes) {
+      onEditComplete(watchedValues, modifiedPdfBytes);
+    }
+  };
+
+  const handleApplyChanges = async (data: EditorSettings) => {
+    setIsPreviewLoading(true);
+    try {
+      const modifiedPdf = await applyEdits(data);
+      if (modifiedPdf) {
+        // Cleanup old URL before creating a new one
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
+        
+        setModifiedPdfBytes(modifiedPdf);
+        const blob = new Blob([modifiedPdf], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        setPreviewUrl(url);
+      }
+    } catch (error) {
+      console.error('Error updating preview:', error);
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="order-2 md:order-1">
-        <div className="space-y-6">
-          {/* Page Numbering Section */}
-          <div className="bg-white rounded-xl p-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">מספור עמודים</h3>
-            <form className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="w-full max-h-screen overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+        {/* Settings form */}
+        <div className="overflow-y-auto p-4 bg-white rounded-xl">
+          <form onSubmit={handleSubmit(handleApplyChanges)} className="space-y-4">
+            {/* Page Numbering Section */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-medium text-gray-900">מספור עמודים</h3>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     התחל מספור מעמוד
@@ -335,7 +411,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                 />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     פונט
@@ -378,7 +454,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     צבע
@@ -389,7 +465,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                     render={({ field }) => (
                       <input
                         type="color"
-                        className="w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                        className="w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                         {...field}
                       />
                     )}
@@ -414,13 +490,11 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   />
                 </div>
               </div>
-            </form>
-          </div>
-          
-          {/* Header Section */}
-          <div className="bg-white rounded-xl p-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">כותרת</h3>
-            <form className="space-y-4">
+            </div>
+
+            {/* Header Section */}
+            <div className="space-y-3 mt-6">
+              <h3 className="text-lg font-medium text-gray-900">כותרת</h3>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   טקסט הכותרת
@@ -430,7 +504,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   control={control}
                   render={({ field }) => (
                     <textarea
-                      rows={3}
+                      rows={2}
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                       placeholder="הזן את טקסט הכותרת כאן..."
                       {...field}
@@ -438,7 +512,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   )}
                 />
               </div>
-              
+
               <div>
                 <Controller
                   name="header.firstPageOnly"
@@ -457,8 +531,8 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   )}
                 />
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     מרחק מימין (ס"מ)
@@ -498,8 +572,8 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   />
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     פונט
@@ -541,8 +615,8 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   />
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     צבע
@@ -553,7 +627,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                     render={({ field }) => (
                       <input
                         type="color"
-                        className="w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                        className="w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                         {...field}
                       />
                     )}
@@ -578,55 +652,53 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                   />
                 </div>
               </div>
-            </form>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={handleDownload}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              >
+                הורד PDF
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                החל שינויים
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* PDF Preview */}
+        <div className="h-screen bg-white rounded-xl p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-900">תצוגה מקדימה</h3>
+            <button
+              type="button"
+              onClick={handleDownload}
+              className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            >
+              הורד PDF
+            </button>
           </div>
-        </div>
-        
-        <div className="mt-6 flex justify-end">
-          <button
-            type="button"
-            onClick={handleSubmit(applyEdits)}
-            className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-          >
-            החל שינויים והמשך
-          </button>
-        </div>
-      </div>
-      
-      <div className="order-1 md:order-2 bg-gray-100 rounded-lg p-4 h-[600px] overflow-auto">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">תצוגה מקדימה</h3>
-        <div className="pdf-container">
-          <Document
-            file={previewUrl}
-            onLoadSuccess={onDocumentLoadSuccess}
-            loading={<div className="text-center py-10">טוען מסמך...</div>}
-            error={<div className="text-center py-10 text-red-500">שגיאה בטעינת המסמך</div>}
-          >
-            {Array.from(new Array(numPages), (_, index) => (
-              <Page 
-                key={`page_${index + 1}`} 
-                pageNumber={index + 1} 
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
-                scale={1}
-              />
-            ))}
-          </Document>
+          <div className="w-full h-[calc(100vh-8rem)] relative">
+            {isPreviewLoading && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            )}
+            <iframe
+              key={previewUrl}
+              src={previewUrl}
+              className="w-full h-full border-0 rounded-lg shadow-sm"
+              title="PDF Preview"
+            />
+          </div>
         </div>
       </div>
     </div>
   );
-}
-
-// Helper function to convert hex color to RGB
-function hexToRgb(hex: string) {
-  // Remove # if present
-  hex = hex.replace('#', '');
-  
-  // Parse the hex values
-  const r = parseInt(hex.substring(0, 2), 16) / 255;
-  const g = parseInt(hex.substring(2, 4), 16) / 255;
-  const b = parseInt(hex.substring(4, 6), 16) / 255;
-  
-  return { r, g, b };
-} 
+}; 

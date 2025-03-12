@@ -2,11 +2,7 @@
 
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
 import { ArrowUturnLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-
-// Initialize PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface PDFPreviewProps {
   pdfBytes: Uint8Array;
@@ -15,7 +11,6 @@ interface PDFPreviewProps {
 }
 
 export const PDFPreview: React.FC<PDFPreviewProps> = ({ pdfBytes, onBack, onDownload }) => {
-  const [numPages, setNumPages] = useState<number>(0);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   
   // Create preview URL from PDF bytes
@@ -28,10 +23,6 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ pdfBytes, onBack, onDown
       URL.revokeObjectURL(url);
     };
   }, [pdfBytes]);
-  
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-  };
   
   return (
     <div>
@@ -57,25 +48,12 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ pdfBytes, onBack, onDown
         </div>
       </div>
       
-      <div className="bg-gray-100 rounded-lg p-4 h-[600px] overflow-auto">
-        <div className="pdf-container">
-          <Document
-            file={previewUrl}
-            onLoadSuccess={onDocumentLoadSuccess}
-            loading={<div className="text-center py-10">טוען מסמך...</div>}
-            error={<div className="text-center py-10 text-red-500">שגיאה בטעינת המסמך</div>}
-          >
-            {Array.from(new Array(numPages), (_, index) => (
-              <Page 
-                key={`page_${index + 1}`} 
-                pageNumber={index + 1} 
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
-                scale={1}
-              />
-            ))}
-          </Document>
-        </div>
+      <div className="bg-gray-100 rounded-lg p-4 h-[600px]">
+        <iframe
+          src={previewUrl}
+          className="w-full h-full border-0"
+          title="PDF Preview"
+        />
       </div>
     </div>
   );

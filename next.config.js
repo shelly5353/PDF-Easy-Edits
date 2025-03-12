@@ -1,10 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  webpack: (config) => {
-    // This is needed for pdf.js to work properly
-    config.resolve.alias.canvas = false;
-    config.resolve.alias.encoding = false;
+  swcMinify: true,
+  webpack: (config, { isServer }) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'pdfjs-dist': 'pdfjs-dist/legacy/build/pdf',
+    };
+    
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        canvas: false,
+      };
+    }
+    
     return config;
   },
 };
