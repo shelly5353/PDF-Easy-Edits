@@ -5,21 +5,25 @@
 :root {
   --foreground-rgb: 229, 231, 235;
   --background-rgb: 3, 7, 18;
-  background-color: rgb(var(--background-rgb));
-  min-height: 100vh;
 }
 
-body {
-  direction: rtl;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color: rgb(var(--foreground-rgb));
-  background-color: rgb(var(--background-rgb));
-  min-height: 100vh;
-}
-
-main {
-  background-color: rgb(var(--background-rgb));
-  min-height: 100vh;
+@layer base {
+  html {
+    background-color: rgb(var(--background-rgb));
+  }
+  
+  body {
+    direction: rtl;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: rgb(var(--foreground-rgb));
+    background-color: rgb(var(--background-rgb));
+    min-height: 100vh;
+  }
+  
+  main {
+    background-color: rgb(var(--background-rgb));
+    min-height: 100vh;
+  }
 }
 
 @layer utilities {
