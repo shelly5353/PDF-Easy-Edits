@@ -7,9 +7,15 @@
   --background-rgb: 3, 7, 18;
 }
 
-body {
+html,
+body,
+main {
+  background-color: rgb(var(--background-rgb));
+  min-height: 100vh;
   color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+}
+
+body {
   direction: rtl;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }

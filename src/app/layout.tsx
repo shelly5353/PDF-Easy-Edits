@@ -14,8 +14,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="he" dir="rtl">
-      <body style={{ backgroundColor: '#030712' }} className="font-sans">
-        <main className="min-h-screen" style={{ backgroundColor: '#030712' }}>
+      <body className="font-sans">
+        <main>
           {children}
         </main>
       </body>
