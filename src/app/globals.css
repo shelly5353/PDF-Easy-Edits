@@ -4,72 +4,109 @@
 
 @layer base {
   html {
-    @apply bg-gray-950;
+    background-color: #030712;
   }
   
   body {
     direction: rtl;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    @apply bg-gray-950 text-gray-100 min-h-screen;
+    background-color: #030712;
+    color: #f3f4f6;
+    min-height: 100vh;
   }
   
   main {
-    @apply bg-gray-950 min-h-screen;
+    background-color: #030712;
+    min-height: 100vh;
   }
 }
 
 .pdf-container {
-  @apply w-full h-full overflow-auto flex flex-col items-center bg-gray-800 p-8 rounded-xl shadow-lg;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #1f2937;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
 
 .react-pdf__Document {
-  @apply flex flex-col items-center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .react-pdf__Page {
-  @apply m-4 p-4 shadow-lg bg-gray-800;
+  margin: 1rem auto;
+  padding: 1rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+  background-color: #1f2937;
 }
 
 .react-pdf__Page canvas {
-  @apply max-w-full h-auto;
+  max-width: 100%;
+  height: auto !important;
 }
 
 .loading-spinner {
-  @apply w-9 h-9 rounded-full border-4 border-blue-600/10 border-l-blue-600 animate-spin;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 4px solid rgba(59, 130, 246, 0.1);
+  border-left-color: #3b82f6;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Form Elements */
 input[type="text"],
 input[type="number"] {
-  @apply bg-gray-800 border border-gray-700 text-gray-200;
+  background-color: #1f2937;
+  border: 1px solid #374151;
+  color: #f3f4f6;
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus {
-  @apply border-blue-600 outline-none ring-blue-600;
+  border-color: #3b82f6;
+  outline: none;
+  ring-color: #3b82f6;
 }
 
 /* Buttons */
 button {
-  @apply bg-blue-600 text-white transition-colors duration-200;
+  background-color: #3b82f6;
+  color: white;
+  transition: background-color 0.2s;
 }
 
 button:hover {
-  @apply bg-blue-700;
+  background-color: #2563eb;
 }
 
 button:disabled {
-  @apply bg-gray-700 cursor-not-allowed;
+  background-color: #374151;
+  cursor: not-allowed;
 }
 
 /* Error Messages */
 .error-message {
-  @apply text-red-300 bg-red-900 border border-red-800;
+  color: #fca5a5;
+  background-color: #7f1d1d;
+  border: 1px solid #b91c1c;
 }
 
 /* Loading States */
 .loading-overlay {
-  @apply bg-gray-950/75;
+  background-color: rgba(3, 7, 18, 0.75);
 }
 
 @layer utilities {
