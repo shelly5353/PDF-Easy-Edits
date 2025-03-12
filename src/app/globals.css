@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import react-pdf styles */
+@import "react-pdf/dist/esm/Page/TextLayer.css";
+@import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+
 html {
   background-color: #030712;
   color: #f3f4f6;
