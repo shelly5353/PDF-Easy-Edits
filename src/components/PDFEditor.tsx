@@ -5,6 +5,11 @@ import { useForm, Controller } from 'react-hook-form';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { Tab } from '@headlessui/react';
 import fontkit from '@pdf-lib/fontkit';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface PDFEditorProps {
   pdfBytes: Uint8Array;
@@ -110,10 +115,9 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   initialSettings,
   onEditComplete
 }) => {
-  const [numPages, setNumPages] = useState<number>(0);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
-  const [modifiedPdfBytes, setModifiedPdfBytes] = useState<Uint8Array | null>(null);
-  const [isPreviewLoading, setIsPreviewLoading] = useState<boolean>(false);
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
   const previewUrlRef = useRef<string | null>(null);
@@ -162,40 +166,32 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
     }
   };
 
-  // Create initial preview URL from PDF bytes
   useEffect(() => {
-    const createInitialPreview = async () => {
-      if (!pdfBytes) return;
-      
-      try {
-        const pdfDoc = await PDFDocument.load(pdfBytes);
-        setNumPages(pdfDoc.getPageCount());
-        
-        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-        previewUrlRef.current = url;
-        setPreviewUrl(url);
-        setHasChanges(false);
-      } catch (error) {
-        console.error('Error creating initial preview:', error);
-        setError('שגיאה בטעינת ה-PDF. אנא ודא שהקובץ תקין ונסה שוב.');
-      }
-    };
-    
-    createInitialPreview();
-    
-    return () => {
-      cleanupUrl();
-    };
+    setIsLoading(true);
+    setError(null);
   }, [pdfBytes]);
 
-  // Update max page number if needed
-  useEffect(() => {
-    if (watchedValues.pageNumbering.startPage > numPages) {
-      setValue('pageNumbering.startPage', numPages);
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+    setIsLoading(false);
+  };
+
+  const onDocumentLoadError = (error: Error) => {
+    console.error('Error loading PDF:', error);
+    setError('שגיאה בטעינת הקובץ. אנא נסה שוב.');
+    setIsLoading(false);
+  };
+
+  const handlePrevPage = () => {
+    setPageNumber(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    if (numPages) {
+      setPageNumber(prev => Math.min(prev + 1, numPages));
     }
-  }, [numPages, watchedValues.pageNumbering.startPage, setValue]);
-  
+  };
+
   const applyEdits = async (data: EditorSettings) => {
     try {
       const pdfDoc = await PDFDocument.load(pdfBytes);
@@ -303,7 +299,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   const handleApplyChanges = async (data: EditorSettings) => {
     if (!pdfBytes || !hasChanges) return;
     
-    setIsPreviewLoading(true);
+    setIsLoading(true);
     setError(null);
     
     try {
@@ -320,14 +316,13 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
         if (iframeRef.current) {
           iframeRef.current.src = url;
         }
-        setPreviewUrl(url);
         setHasChanges(false);
       }
     } catch (error) {
       console.error('Error applying changes:', error);
       setError(error instanceof Error ? error.message : 'שגיאה בהחלת השינויים');
     } finally {
-      setIsPreviewLoading(false);
+      setIsLoading(false);
     }
   };
   
@@ -389,7 +384,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                           <input
                             type="number"
                             min={1}
-                            max={numPages}
+                            max={numPages || 1}
                             className="w-full rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
@@ -748,18 +743,18 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
             </button>
           </div>
           <div className="w-full h-[calc(100vh-8rem)] relative">
-            {isPreviewLoading && (
+            {isLoading && (
               <div className="absolute inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-10">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
               </div>
             )}
-            {previewUrl ? (
+            {previewUrlRef.current ? (
               <iframe
                 ref={iframeRef}
-                src={previewUrl}
+                src={previewUrlRef.current}
                 className="w-full h-full border-0 rounded-lg shadow-sm bg-white"
                 title="PDF Preview"
-                style={{ opacity: isPreviewLoading ? 0.5 : 1 }}
+                style={{ opacity: isLoading ? 0.5 : 1 }}
               />
             ) : (
               <div className="flex items-center justify-center h-full text-gray-400">
