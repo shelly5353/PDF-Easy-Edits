@@ -3,6 +3,12 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { ArrowUturnLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { pdfjs } from 'react-pdf';
+
+// הגדרה של ה-worker
+if (typeof window !== 'undefined') {
+  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+}
 
 interface PDFPreviewProps {
   pdfBytes: Uint8Array;
@@ -54,6 +60,7 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ pdfBytes, onBack, onDown
           className="w-full h-full border-0"
           title="PDF Preview"
           style={{ backgroundColor: 'white' }}
+          sandbox="allow-scripts allow-same-origin"
         />
       </div>
     </div>
