@@ -2,22 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --surface: #1e293b;
+  --surface-hover: #334155;
+  --background: #0f172a;
+  --text: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border: #334155;
+  --error: #ef4444;
+  --success: #22c55e;
+}
+
 html {
-  background-color: #030712;
-  color: #f3f4f6;
+  background-color: var(--background);
+  color: var(--text);
+  height: 100%;
 }
 
 body {
-  background-color: #030712;
-  color: #f3f4f6;
+  background-color: var(--background);
+  color: var(--text);
   min-height: 100vh;
   direction: rtl;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 main {
-  background-color: #030712;
+  background-color: var(--background);
   min-height: 100vh;
+  padding: 1rem;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.card {
+  background-color: var(--surface);
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border-color: var(--primary);
 }
 
 .pdf-container {
@@ -27,45 +61,35 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #1f2937;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  border: 1px solid #374151;
+  background-color: var(--surface);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
 }
 
 .react-pdf__Document {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .react-pdf__Page {
   margin: 1rem auto;
   padding: 1rem;
-  background-color: #1f2937;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  border: 1px solid #374151;
-  border-radius: 0.375rem;
+  background-color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  border-radius: 0.5rem;
+  width: 100%;
+  max-width: 800px;
 }
 
 .react-pdf__Page canvas {
   max-width: 100%;
   height: auto !important;
-  border-radius: 0.25rem;
-}
-
-.loading-spinner {
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 9999px;
-  border: 2px solid #374151;
-  border-left-color: #3b82f6;
-  animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  border-radius: 0.5rem;
 }
 
 /* Form Elements */
@@ -73,85 +97,174 @@ input[type="text"],
 input[type="number"],
 select,
 textarea {
-  background-color: #1f2937;
-  border: 1px solid #374151;
-  color: #f3f4f6;
-  border-radius: 0.375rem;
-  padding: 0.5rem;
-  transition: all 0.15s ease;
+  width: 100%;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
 }
 
 input[type="text"]:hover,
 input[type="number"]:hover,
 select:hover,
 textarea:hover {
-  border-color: #4b5563;
+  border-color: var(--primary);
+  background-color: var(--surface-hover);
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus,
 select:focus,
 textarea:focus {
-  border-color: #3b82f6;
+  border-color: var(--primary);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  background-color: var(--surface-hover);
 }
 
 /* Checkbox Styles */
 input[type="checkbox"] {
-  border-radius: 0.25rem;
-  border: 1px solid #374151;
-  background-color: #1f2937;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.375rem;
+  border: 2px solid var(--border);
+  background-color: var(--surface);
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 input[type="checkbox"]:checked {
-  background-color: #3b82f6;
-  border-color: #3b82f6;
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--primary);
 }
 
 /* Color Input */
 input[type="color"] {
-  padding: 0;
   width: 100%;
   height: 2.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;
   border-radius: 0.375rem;
-  border: 1px solid #374151;
-  background-color: #1f2937;
 }
 
 /* Buttons */
 button {
-  background-color: #3b82f6;
-  color: #f3f4f6;
-  transition: all 0.15s ease;
-  border-radius: 0.375rem;
-  padding: 0.5rem 1rem;
+  background-color: var(--primary);
+  color: white;
   font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  white-space: nowrap;
 }
 
 button:hover:not(:disabled) {
-  background-color: #2563eb;
+  background-color: var(--primary-hover);
   transform: translateY(-1px);
 }
 
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
 button:disabled {
-  background-color: #374151;
-  color: #6b7280;
+  background-color: var(--surface);
+  color: var(--text-secondary);
   cursor: not-allowed;
 }
 
 /* Error Messages */
 .error-message {
-  color: #fca5a5;
-  background-color: #7f1d1d;
-  border: 1px solid #991b1b;
-  border-radius: 0.375rem;
-  padding: 0.75rem;
+  color: var(--text);
+  background-color: rgb(239 68 68 / 0.1);
+  border: 1px solid var(--error);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Loading States */
+.loading-spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  border: 2px solid var(--border);
+  border-left-color: var(--primary);
+  animation: spin 0.6s linear infinite;
+}
+
 .loading-overlay {
-  background-color: rgba(17, 24, 39, 0.8);
+  background-color: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Section Headers */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.section-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Form Groups */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Grid Layout */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
 @layer utilities {

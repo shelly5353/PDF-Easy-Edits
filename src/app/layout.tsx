@@ -13,11 +13,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="he" dir="rtl" className="bg-gray-950">
-      <body className="font-sans bg-gray-950 text-gray-100 min-h-screen">
-        <main className="container mx-auto px-4 py-8 bg-gray-950 min-h-screen">
-          {children}
-        </main>
+    <html lang="he" dir="rtl">
+      <body className="font-sans antialiased">
+        <div className="min-h-screen bg-gradient-to-b from-background via-background to-surface">
+          <main className="container mx-auto py-8">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );
