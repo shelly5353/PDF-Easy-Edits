@@ -195,6 +195,10 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   };
 
   const applyEdits = async (data: EditorSettings) => {
+    if (!pdfBytes) {
+      throw new Error('לא נבחר קובץ PDF');
+    }
+
     try {
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const pages = pdfDoc.getPages();
@@ -299,7 +303,12 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   };
   
   const handleApplyChanges = async (data: EditorSettings) => {
-    if (!pdfBytes || !hasChanges) return;
+    if (!pdfBytes) {
+      setError('לא נבחר קובץ PDF');
+      return;
+    }
+    
+    if (!hasChanges) return;
     
     setIsLoading(true);
     setError(null);
@@ -320,6 +329,11 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   };
   
   const handleDownload = () => {
+    if (!pdfBytes) {
+      setError('לא נבחר קובץ PDF');
+      return;
+    }
+
     if (modifiedPdfBytes) {
       if (onEditComplete) {
         onEditComplete(watchedValues, modifiedPdfBytes);
@@ -335,7 +349,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }
-    } else if (pdfBytes && hasChanges) {
+    } else if (hasChanges) {
       // If there are changes but preview wasn't updated, apply changes before download
       handleApplyChanges(watchedValues);
     }
@@ -352,7 +366,9 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
 
     try {
       const arrayBuffer = await file.arrayBuffer();
-      setModifiedPdfBytes(new Uint8Array(arrayBuffer));
+      const bytes = new Uint8Array(arrayBuffer);
+      setPdfBytes(bytes);
+      setModifiedPdfBytes(null);
       setError(null);
     } catch (err) {
       setError('שגיאה בטעינת הקובץ. אנא נסה שוב.');
