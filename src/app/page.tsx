@@ -17,17 +17,20 @@ const PDFEditor = dynamic(() => import('../components/PDFEditor').then(mod => mo
 export default function Home() {
   return (
     <div className="flex flex-col items-center justify-start">
-      <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-blue-400 text-transparent bg-clip-text">
+      <div className="text-center mb-16 relative">
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-32 h-32 bg-blue-500 rounded-full opacity-10 blur-3xl"></div>
+        <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-400 text-transparent bg-clip-text relative">
           עריכת PDF פשוטה
         </h1>
-        <p className="text-xl text-text-secondary">
-          הוספת מספור עמודים וכותרות לקבצי PDF בקלות ובמהירות
+        <p className="text-xl text-text-secondary max-w-2xl mx-auto">
+          הוספת מספור עמודים וכותרות לקבצי PDF בקלות ובמהירות, ללא צורך בהתקנת תוכנות
         </p>
       </div>
       
-      <div className="w-full max-w-6xl mx-auto">
-        <div className="card p-6">
+      <div className="w-full max-w-6xl mx-auto relative">
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500 rounded-full opacity-5 blur-3xl"></div>
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-500 rounded-full opacity-5 blur-3xl"></div>
+        <div className="card p-8 backdrop-blur-sm bg-white/80">
           <PDFEditor />
         </div>
       </div>

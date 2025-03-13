@@ -15,8 +15,9 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl">
       <body className="font-sans antialiased">
-        <div className="min-h-screen bg-gradient-to-b from-background via-background to-surface">
-          <main className="container mx-auto py-8">
+        <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-blue-100">
+          <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+          <main className="relative container mx-auto py-12 px-4">
             {children}
           </main>
         </div>
