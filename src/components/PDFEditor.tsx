@@ -12,9 +12,9 @@ import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface PDFEditorProps {
-  pdfBytes: Uint8Array;
-  initialSettings: any;
-  onEditComplete: (settings: any, editedPdfBytes: Uint8Array) => void;
+  pdfBytes?: Uint8Array;
+  initialSettings?: any;
+  onEditComplete?: (settings: any, editedPdfBytes: Uint8Array) => void;
 }
 
 interface EditorSettings {
@@ -111,10 +111,11 @@ async function loadCustomFont(pdfDoc: PDFDocument, fontName: string, bold: boole
 }
 
 export const PDFEditor: React.FC<PDFEditorProps> = ({
-  pdfBytes,
+  pdfBytes: initialPdfBytes,
   initialSettings,
   onEditComplete
 }) => {
+  const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(initialPdfBytes || null);
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -320,7 +321,20 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
   
   const handleDownload = () => {
     if (modifiedPdfBytes) {
-      onEditComplete(watchedValues, modifiedPdfBytes);
+      if (onEditComplete) {
+        onEditComplete(watchedValues, modifiedPdfBytes);
+      } else {
+        // If no onEditComplete provided, download directly
+        const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'edited_document.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
     } else if (pdfBytes && hasChanges) {
       // If there are changes but preview wasn't updated, apply changes before download
       handleApplyChanges(watchedValues);
