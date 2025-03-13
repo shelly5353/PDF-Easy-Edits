@@ -377,323 +377,127 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
 
   if (!pdfBytes) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 bg-gray-950 rounded-xl shadow-lg">
+      <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-gradient-to-b from-gray-950 to-gray-900">
         {error && (
-          <div className="mb-6 p-4 bg-red-950 border border-red-800 text-red-100 rounded-md">
+          <div className="mb-6 p-4 bg-red-950/50 backdrop-blur-sm border border-red-800/50 text-red-100 rounded-xl shadow-xl">
             {error}
           </div>
         )}
-        <label className="cursor-pointer bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900">
-          <span className="text-lg">בחר קובץ PDF</span>
-          <input
-            type="file"
-            accept=".pdf,application/pdf"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-        </label>
+        <div className="relative group cursor-pointer">
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
+          <label className="relative px-8 py-4 bg-gray-900 ring-1 ring-gray-800/50 rounded-xl flex items-center gap-3 hover:bg-gray-900/80 transition duration-200">
+            <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span className="text-lg font-medium text-gray-100">בחר קובץ PDF</span>
+            <input
+              type="file"
+              accept=".pdf,application/pdf"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </label>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-950">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-gray-950">
-        {/* Settings form */}
-        <div className="overflow-y-auto p-4 bg-gray-950 rounded-xl">
-          {error && (
-            <div className="bg-red-950 border border-red-800 text-red-100 px-4 py-3 rounded relative mb-4" role="alert">
-              <strong className="font-bold">שגיאה: </strong>
-              <span className="block sm:inline">{error}</span>
-            </div>
-          )}
-          
-          <form onSubmit={handleSubmit(handleApplyChanges)} className="space-y-4">
-            {/* Page Numbering Section */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-100">מספור עמודים</h3>
-                <Controller
-                  name="pageNumbering.enabled"
-                  control={control}
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
-                        checked={value}
-                        onChange={(e) => onChange(e.target.checked)}
-                        {...field}
-                      />
-                      <span className="mr-2 text-sm text-gray-300">הפעל מספור</span>
-                    </label>
-                  )}
-                />
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 to-gray-900 p-6">
+      <div className="max-w-[1600px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Settings Panel */}
+          <div className="bg-gray-900/50 backdrop-blur-sm p-6 rounded-2xl ring-1 ring-gray-800/50 shadow-xl">
+            {error && (
+              <div className="mb-6 p-4 bg-red-950/50 backdrop-blur-sm border border-red-800/50 text-red-100 rounded-xl">
+                <strong className="font-medium">שגיאה: </strong>
+                <span>{error}</span>
               </div>
-              
-              {watchedValues.pageNumbering.enabled && (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-200 mb-1">
-                        התחל מספור מעמוד
-                      </label>
-                      <Controller
-                        name="pageNumbering.startPage"
-                        control={control}
-                        render={({ field }) => (
-                          <input
-                            type="number"
-                            min={1}
-                            max={numPages || 1}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                          />
-                        )}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-200 mb-1">
-                        התחל ממספר
-                      </label>
-                      <Controller
-                        name="pageNumbering.startNumber"
-                        control={control}
-                        render={({ field }) => (
-                          <input
-                            type="number"
-                            min={0}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          />
-                        )}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                      מיקום המספר
-                    </label>
-                    <Controller
-                      name="pageNumbering.position"
-                      control={control}
-                      render={({ field }) => (
-                        <select
-                          className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
-                          {...field}
-                        >
-                          {positionOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-200 mb-1">
-                        פונט
-                      </label>
-                      <Controller
-                        name="pageNumbering.font"
-                        control={control}
-                        render={({ field }) => (
-                          <select
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
-                            {...field}
-                          >
-                            {fontOptions.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-200 mb-1">
-                        גודל פונט
-                      </label>
-                      <Controller
-                        name="pageNumbering.fontSize"
-                        control={control}
-                        render={({ field }) => (
-                          <input
-                            type="number"
-                            min={8}
-                            max={24}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 12)}
-                          />
-                        )}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-200 mb-1">
-                        צבע
-                      </label>
-                      <Controller
-                        name="pageNumbering.color"
-                        control={control}
-                        render={({ field }) => (
-                          <input
-                            type="color"
-                            className="w-full h-8 rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
-                            {...field}
-                          />
-                        )}
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <Controller
-                        name="pageNumbering.bold"
-                        control={control}
-                        render={({ field: { value, onChange, ...field } }) => (
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
-                              checked={value}
-                              onChange={(e) => onChange(e.target.checked)}
-                              {...field}
-                            />
-                            <span className="mr-2 text-sm text-gray-300">מודגש</span>
-                          </label>
-                        )}
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Header Section */}
-            <div className="space-y-3 mt-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-100">כותרת</h3>
-                <Controller
-                  name="header.enabled"
-                  control={control}
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
-                        checked={value}
-                        onChange={(e) => onChange(e.target.checked)}
-                        {...field}
-                      />
-                      <span className="mr-2 text-sm text-gray-300">הפעל כותרת</span>
-                    </label>
-                  )}
-                />
-              </div>
-              
-              {watchedValues.header.enabled && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-1">
-                      טקסט הכותרת
-                    </label>
-                    <Controller
-                      name="header.text"
-                      control={control}
-                      render={({ field }) => (
-                        <textarea
-                          rows={2}
-                          className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
-                          placeholder="הזן את טקסט הכותרת כאן..."
+            )}
+            
+            <form onSubmit={handleSubmit(handleApplyChanges)} className="space-y-6">
+              {/* Page Numbering Section */}
+              <div className="space-y-4 bg-gray-950/50 p-4 rounded-xl">
+                <div className="flex justify-between items-center border-b border-gray-800/50 pb-3">
+                  <h3 className="text-lg font-medium text-gray-100 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+                    </svg>
+                    מספור עמודים
+                  </h3>
+                  <Controller
+                    name="pageNumbering.enabled"
+                    control={control}
+                    render={({ field: { value, onChange, ...field } }) => (
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
+                          checked={value}
+                          onChange={(e) => onChange(e.target.checked)}
                           {...field}
                         />
-                      )}
-                    />
-                  </div>
-
-                  <div>
-                    <Controller
-                      name="header.firstPageOnly"
-                      control={control}
-                      render={({ field: { value, onChange, ...field } }) => (
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
-                            checked={value}
-                            onChange={(e) => onChange(e.target.checked)}
-                            {...field}
-                          />
-                          <span className="mr-2 text-sm text-gray-300">הצג בעמוד הראשון בלבד</span>
+                        <span className="mr-2 text-sm text-gray-300">הפעל מספור</span>
+                      </label>
+                    )}
+                  />
+                </div>
+                
+                {watchedValues.pageNumbering.enabled && (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          התחל מספור מעמוד
                         </label>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-200 mb-1">
-                        מרחק מימין (ס"מ)
-                      </label>
-                      <Controller
-                        name="header.distanceFromRight"
-                        control={control}
-                        render={({ field }) => (
-                          <input
-                            type="number"
-                            min={0}
-                            step={0.1}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 50)}
-                          />
-                        )}
-                      />
+                        <Controller
+                          name="pageNumbering.startPage"
+                          control={control}
+                          render={({ field }) => (
+                            <input
+                              type="number"
+                              min={1}
+                              max={numPages || 1}
+                              className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                            />
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          התחל ממספר
+                        </label>
+                        <Controller
+                          name="pageNumbering.startNumber"
+                          control={control}
+                          render={({ field }) => (
+                            <input
+                              type="number"
+                              min={0}
+                              className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            />
+                          )}
+                        />
+                      </div>
                     </div>
+                    
                     <div>
                       <label className="block text-sm font-medium text-gray-200 mb-1">
-                        מרחק מלמעלה (ס"מ)
+                        מיקום המספר
                       </label>
                       <Controller
-                        name="header.distanceFromTop"
-                        control={control}
-                        render={({ field }) => (
-                          <input
-                            type="number"
-                            min={0}
-                            step={0.1}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 50)}
-                          />
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-200 mb-1">
-                        פונט
-                      </label>
-                      <Controller
-                        name="header.font"
+                        name="pageNumbering.position"
                         control={control}
                         render={({ field }) => (
                           <select
                             className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
                             {...field}
                           >
-                            {fontOptions.map((option) => (
+                            {positionOptions.map((option) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
                               </option>
@@ -702,47 +506,140 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         )}
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-200 mb-1">
-                        גודל פונט
-                      </label>
-                      <Controller
-                        name="header.fontSize"
-                        control={control}
-                        render={({ field }) => (
-                          <input
-                            type="number"
-                            min={8}
-                            max={36}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 14)}
-                          />
-                        )}
-                      />
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          פונט
+                        </label>
+                        <Controller
+                          name="pageNumbering.font"
+                          control={control}
+                          render={({ field }) => (
+                            <select
+                              className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
+                              {...field}
+                            >
+                              {fontOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          גודל פונט
+                        </label>
+                        <Controller
+                          name="pageNumbering.fontSize"
+                          control={control}
+                          render={({ field }) => (
+                            <input
+                              type="number"
+                              min={8}
+                              max={24}
+                              className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 12)}
+                            />
+                          )}
+                        />
+                      </div>
                     </div>
-                  </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          צבע
+                        </label>
+                        <Controller
+                          name="pageNumbering.color"
+                          control={control}
+                          render={({ field }) => (
+                            <input
+                              type="color"
+                              className="w-full h-8 rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
+                              {...field}
+                            />
+                          )}
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <Controller
+                          name="pageNumbering.bold"
+                          control={control}
+                          render={({ field: { value, onChange, ...field } }) => (
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
+                                checked={value}
+                                onChange={(e) => onChange(e.target.checked)}
+                                {...field}
+                              />
+                              <span className="mr-2 text-sm text-gray-300">מודגש</span>
+                            </label>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+              {/* Header Section */}
+              <div className="space-y-4 bg-gray-950/50 p-4 rounded-xl">
+                <div className="flex justify-between items-center border-b border-gray-800/50 pb-3">
+                  <h3 className="text-lg font-medium text-gray-100 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"/>
+                    </svg>
+                    כותרת
+                  </h3>
+                  <Controller
+                    name="header.enabled"
+                    control={control}
+                    render={({ field: { value, onChange, ...field } }) => (
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
+                          checked={value}
+                          onChange={(e) => onChange(e.target.checked)}
+                          {...field}
+                        />
+                        <span className="mr-2 text-sm text-gray-300">הפעל כותרת</span>
+                      </label>
+                    )}
+                  />
+                </div>
+                
+                {watchedValues.header.enabled && (
+                  <>
                     <div>
                       <label className="block text-sm font-medium text-gray-200 mb-1">
-                        צבע
+                        טקסט הכותרת
                       </label>
                       <Controller
-                        name="header.color"
+                        name="header.text"
                         control={control}
                         render={({ field }) => (
-                          <input
-                            type="color"
-                            className="w-full h-8 rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
+                          <textarea
+                            rows={2}
+                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
+                            placeholder="הזן את טקסט הכותרת כאן..."
                             {...field}
                           />
                         )}
                       />
                     </div>
-                    <div className="flex items-end">
+
+                    <div>
                       <Controller
-                        name="header.bold"
+                        name="header.firstPageOnly"
                         control={control}
                         render={({ field: { value, onChange, ...field } }) => (
                           <label className="flex items-center">
@@ -753,112 +650,263 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                               onChange={(e) => onChange(e.target.checked)}
                               {...field}
                             />
-                            <span className="mr-2 text-sm text-gray-300">מודגש</span>
+                            <span className="mr-2 text-sm text-gray-300">הצג בעמוד הראשון בלבד</span>
                           </label>
                         )}
                       />
                     </div>
-                  </div>
-                </>
-              )}
-            </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          מרחק מימין (ס"מ)
+                        </label>
+                        <Controller
+                          name="header.distanceFromRight"
+                          control={control}
+                          render={({ field }) => (
+                            <input
+                              type="number"
+                              min={0}
+                              step={0.1}
+                              className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
+                              {...field}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 50)}
+                            />
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          מרחק מלמעלה (ס"מ)
+                        </label>
+                        <Controller
+                          name="header.distanceFromTop"
+                          control={control}
+                          render={({ field }) => (
+                            <input
+                              type="number"
+                              min={0}
+                              step={0.1}
+                              className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
+                              {...field}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 50)}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          פונט
+                        </label>
+                        <Controller
+                          name="header.font"
+                          control={control}
+                          render={({ field }) => (
+                            <select
+                              className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
+                              {...field}
+                            >
+                              {fontOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          גודל פונט
+                        </label>
+                        <Controller
+                          name="header.fontSize"
+                          control={control}
+                          render={({ field }) => (
+                            <input
+                              type="number"
+                              min={8}
+                              max={36}
+                              className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 14)}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-1">
+                          צבע
+                        </label>
+                        <Controller
+                          name="header.color"
+                          control={control}
+                          render={({ field }) => (
+                            <input
+                              type="color"
+                              className="w-full h-8 rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
+                              {...field}
+                            />
+                          )}
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <Controller
+                          name="header.bold"
+                          control={control}
+                          render={({ field: { value, onChange, ...field } }) => (
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
+                                checked={value}
+                                onChange={(e) => onChange(e.target.checked)}
+                                {...field}
+                              />
+                              <span className="mr-2 text-sm text-gray-300">מודגש</span>
+                            </label>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-6">
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  disabled={!pdfBytes}
+                  className={`px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all duration-200 ${
+                    !pdfBytes 
+                      ? 'bg-gray-800 cursor-not-allowed text-gray-400' 
+                      : 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white shadow-lg hover:shadow-green-500/25'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  </svg>
+                  הורד PDF
+                </button>
+                <button
+                  type="submit"
+                  disabled={!hasChanges || !pdfBytes}
+                  className={`px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all duration-200 ${
+                    !hasChanges || !pdfBytes
+                      ? 'bg-gray-800 cursor-not-allowed text-gray-400'
+                      : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-lg hover:shadow-blue-500/25'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  החל שינויים
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* PDF Preview Panel */}
+          <div className="bg-gray-900/50 backdrop-blur-sm p-6 rounded-2xl ring-1 ring-gray-800/50 shadow-xl">
+            <div className="flex justify-between items-center mb-4 border-b border-gray-800/50 pb-3">
+              <h3 className="text-lg font-medium text-gray-100 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                תצוגה מקדימה
+              </h3>
               <button
                 type="button"
                 onClick={handleDownload}
-                disabled={!pdfBytes}
-                className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                  !pdfBytes 
-                    ? 'bg-gray-600 cursor-not-allowed text-gray-300' 
-                    : 'bg-green-600 hover:bg-green-700 focus:ring-green-500 text-white'
-                }`}
+                className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white text-sm rounded-xl transition-all duration-200 shadow-lg hover:shadow-green-500/25 flex items-center gap-2"
               >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
                 הורד PDF
               </button>
-              <button
-                type="submit"
-                disabled={!hasChanges || !pdfBytes}
-                className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                  !hasChanges || !pdfBytes
-                    ? 'bg-gray-600 cursor-not-allowed text-gray-300'
-                    : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white'
-                }`}
-              >
-                החל שינויים
-              </button>
             </div>
-          </form>
-        </div>
-
-        {/* PDF Preview */}
-        <div className="bg-gray-950 rounded-xl p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-gray-100">תצוגה מקדימה</h3>
-            <button
-              type="button"
-              onClick={handleDownload}
-              className="px-3 py-1.5 bg-green-700 text-white text-sm rounded-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
-            >
-              הורד PDF
-            </button>
-          </div>
-          <div className="w-full h-[calc(100vh-8rem)] relative bg-gray-900 rounded-lg p-4">
-            {isLoading && (
-              <div className="absolute inset-0 bg-gray-950 bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            )}
-            {pdfBytes && (
-              <div className="w-full h-full flex flex-col items-center bg-gray-900 rounded-lg">
-                <Document
-                  file={new Blob([modifiedPdfBytes || pdfBytes])}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  onLoadError={onDocumentLoadError}
-                  loading={
-                    <div className="flex items-center justify-center h-full">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="relative h-[calc(100vh-12rem)] bg-gray-950/50 rounded-xl p-4 ring-1 ring-gray-800/50">
+              {isLoading && (
+                <div className="absolute inset-0 bg-gray-950/75 backdrop-blur-sm flex items-center justify-center z-10 rounded-xl">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-500 border-t-transparent"></div>
+                    <span className="text-sm text-gray-400">טוען...</span>
+                  </div>
+                </div>
+              )}
+              {pdfBytes && (
+                <div className="w-full h-full flex flex-col items-center bg-gray-950/50 rounded-xl overflow-hidden">
+                  <Document
+                    file={new Blob([modifiedPdfBytes || pdfBytes])}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    onLoadError={onDocumentLoadError}
+                    loading={
+                      <div className="flex items-center justify-center h-full">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-500 border-t-transparent"></div>
+                          <span className="text-sm text-gray-400">טוען מסמך...</span>
+                        </div>
+                      </div>
+                    }
+                  >
+                    <div className="bg-gray-950/50 rounded-xl flex justify-center p-4">
+                      <Page
+                        pageNumber={pageNumber}
+                        width={Math.min(window.innerWidth * 0.4, 800)}
+                        renderTextLayer={false}
+                        renderAnnotationLayer={false}
+                        className="shadow-2xl rounded-lg"
+                      />
                     </div>
-                  }
-                >
-                  <div className="bg-gray-900 rounded-lg flex justify-center">
-                    <Page
-                      pageNumber={pageNumber}
-                      width={Math.min(window.innerWidth * 0.4, 800)}
-                      renderTextLayer={false}
-                      renderAnnotationLayer={false}
-                      className="shadow-lg"
-                    />
-                  </div>
-                </Document>
-                {numPages && numPages > 1 && (
-                  <div className="flex justify-center items-center gap-4 mt-4 w-full">
-                    <button
-                      onClick={handlePrevPage}
-                      disabled={pageNumber <= 1}
-                      className="px-3 py-1 bg-blue-600 text-white rounded-md disabled:bg-gray-700"
-                    >
-                      הקודם
-                    </button>
-                    <span className="text-gray-200">
-                      עמוד {pageNumber} מתוך {numPages}
-                    </span>
-                    <button
-                      onClick={handleNextPage}
-                      disabled={pageNumber >= numPages}
-                      className="px-3 py-1 bg-blue-600 text-white rounded-md disabled:bg-gray-700"
-                    >
-                      הבא
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-            {!pdfBytes && (
-              <div className="flex items-center justify-center h-full text-gray-400">
-                אנא טען קובץ PDF
-              </div>
-            )}
+                  </Document>
+                  {numPages && numPages > 1 && (
+                    <div className="flex justify-center items-center gap-4 mt-4 w-full bg-gray-950/30 p-3 rounded-xl">
+                      <button
+                        onClick={handlePrevPage}
+                        disabled={pageNumber <= 1}
+                        className="px-4 py-2 bg-blue-600/80 hover:bg-blue-500/80 text-white rounded-xl disabled:bg-gray-800 disabled:text-gray-600 transition-all duration-200 flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        הקודם
+                      </button>
+                      <span className="text-gray-300 bg-gray-900/50 px-4 py-2 rounded-lg">
+                        עמוד {pageNumber} מתוך {numPages}
+                      </span>
+                      <button
+                        onClick={handleNextPage}
+                        disabled={pageNumber >= numPages}
+                        className="px-4 py-2 bg-blue-600/80 hover:bg-blue-500/80 text-white rounded-xl disabled:bg-gray-800 disabled:text-gray-600 transition-all duration-200 flex items-center gap-2"
+                      >
+                        הבא
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {!pdfBytes && (
+                <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-3">
+                  <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  <span>אנא טען קובץ PDF</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
