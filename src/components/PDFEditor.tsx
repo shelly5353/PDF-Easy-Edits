@@ -798,7 +798,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
               </div>
               <div className="relative h-[calc(100vh-12rem)] bg-surface rounded-xl p-4">
                 {isLoading && (
-                  <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-xl">
+                  <div className="absolute inset-0 loading-overlay flex items-center justify-center z-10 rounded-xl">
                     <div className="flex flex-col items-center gap-3">
                       <div className="loading-spinner"></div>
                       <span className="text-text-secondary">טוען...</span>
@@ -820,7 +820,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         </div>
                       }
                     >
-                      <div className="bg-white rounded-xl flex justify-center p-4 shadow-md">
+                      <div className="bg-white rounded-xl flex justify-center p-4 shadow-md" style={{ backgroundColor: 'white' }}>
                         <Page
                           pageNumber={pageNumber}
                           width={Math.min(window.innerWidth * 0.4, 600)}

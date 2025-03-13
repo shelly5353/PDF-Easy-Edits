@@ -27,12 +27,12 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ pdfBytes, onBack, onDown
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">תצוגה מקדימה</h2>
+        <h2 className="text-xl font-semibold">תצוגה מקדימה</h2>
         <div className="flex space-x-4">
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            className="inline-flex items-center px-4 py-2 border border-border shadow-sm text-sm font-medium rounded-md bg-surface hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
             <ArrowUturnLeftIcon className="ml-2 -mr-1 h-5 w-5" />
             חזרה לעריכה
@@ -40,7 +40,7 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ pdfBytes, onBack, onDown
           <button
             type="button"
             onClick={onDownload}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
             <ArrowDownTrayIcon className="ml-2 -mr-1 h-5 w-5" />
             הורדת הקובץ
@@ -48,11 +48,12 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ pdfBytes, onBack, onDown
         </div>
       </div>
       
-      <div className="bg-gray-100 rounded-lg p-4 h-[600px]">
+      <div className="bg-surface rounded-lg p-4 h-[600px] border border-border">
         <iframe
           src={previewUrl}
           className="w-full h-full border-0"
           title="PDF Preview"
+          style={{ backgroundColor: 'white' }}
         />
       </div>
     </div>
