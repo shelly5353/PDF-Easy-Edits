@@ -834,4 +834,6 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
       </div>
     </div>
   );
-}; 
+};
+
+export default PDFEditor; 

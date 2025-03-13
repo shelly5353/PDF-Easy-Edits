@@ -2,10 +2,9 @@
 
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import PDFEditor from '@/components/PDFEditor';
 
 // Dynamic import for PDFEditor to avoid SSR issues
-const DynamicPDFEditor = dynamic(() => import('../components/PDFEditor').then(mod => mod.PDFEditor), {
+const PDFEditor = dynamic(() => import('../components/PDFEditor').then(mod => mod.PDFEditor), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center p-8 bg-gray-800 text-gray-100">
