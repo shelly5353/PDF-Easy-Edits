@@ -3,7 +3,9 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { ArrowUturnLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { pdfjs } from 'react-pdf';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 
 // הגדרה של ה-worker
 if (typeof window !== 'undefined') {
@@ -17,18 +19,24 @@ interface PDFPreviewProps {
 }
 
 export const PDFPreview: React.FC<PDFPreviewProps> = ({ pdfBytes, onBack, onDownload }) => {
-  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Create preview URL from PDF bytes
-  useEffect(() => {
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    setPreviewUrl(url);
-    
-    return () => {
-      URL.revokeObjectURL(url);
-    };
-  }, [pdfBytes]);
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+    setIsLoading(false);
+  };
+  
+  const handlePrevPage = () => {
+    setPageNumber(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    if (numPages) {
+      setPageNumber(prev => Math.min(prev + 1, numPages));
+    }
+  };
   
   return (
     <div>
@@ -54,14 +62,68 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ pdfBytes, onBack, onDown
         </div>
       </div>
       
-      <div className="bg-surface rounded-lg p-4 h-[600px] border border-border">
-        <iframe
-          src={previewUrl}
-          className="w-full h-full border-0"
-          title="PDF Preview"
-          style={{ backgroundColor: 'white' }}
-          sandbox="allow-scripts allow-same-origin"
-        />
+      <div className="bg-surface rounded-lg p-4 h-[600px] border border-border overflow-auto">
+        {isLoading && (
+          <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center gap-3">
+              <div className="loading-spinner"></div>
+              <span className="text-text-secondary">טוען מסמך...</span>
+            </div>
+          </div>
+        )}
+        
+        <Document
+          file={new Blob([pdfBytes], { type: 'application/pdf' })}
+          onLoadSuccess={onDocumentLoadSuccess}
+          loading={
+            <div className="flex items-center justify-center h-full">
+              <div className="flex flex-col items-center gap-3">
+                <div className="loading-spinner"></div>
+                <span className="text-text-secondary">טוען מסמך...</span>
+              </div>
+            </div>
+          }
+        >
+          <div className="flex flex-col items-center">
+            <div className="bg-white rounded-xl flex justify-center p-4 shadow-md" style={{ backgroundColor: 'white' }}>
+              <Page
+                pageNumber={pageNumber}
+                width={Math.min(window.innerWidth * 0.6, 800)}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+                className="rounded-lg"
+              />
+            </div>
+            
+            {numPages && numPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-6 w-full">
+                <button
+                  onClick={handlePrevPage}
+                  disabled={pageNumber <= 1}
+                  className="px-4 py-2 bg-surface hover:bg-surface-hover text-text border border-border rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/>
+                  </svg>
+                  הקודם
+                </button>
+                <span className="text-text-secondary bg-surface px-4 py-2 rounded-xl border border-border">
+                  עמוד {pageNumber} מתוך {numPages}
+                </span>
+                <button
+                  onClick={handleNextPage}
+                  disabled={pageNumber >= numPages}
+                  className="px-4 py-2 bg-surface hover:bg-surface-hover text-text border border-border rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+                >
+                  הבא
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+        </Document>
       </div>
     </div>
   );
