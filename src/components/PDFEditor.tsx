@@ -377,7 +377,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
 
   if (!pdfBytes) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 bg-gray-900 rounded-xl shadow-lg">
+      <div className="flex flex-col items-center justify-center p-8 bg-gray-950 rounded-xl shadow-lg">
         {error && (
           <div className="mb-6 p-4 bg-red-950 border border-red-800 text-red-100 rounded-md">
             {error}
@@ -400,7 +400,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
     <div className="w-full min-h-screen bg-gray-950">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-gray-950">
         {/* Settings form */}
-        <div className="overflow-y-auto p-4 bg-gray-900 rounded-xl">
+        <div className="overflow-y-auto p-4 bg-gray-950 rounded-xl">
           {error && (
             <div className="bg-red-950 border border-red-800 text-red-100 px-4 py-3 rounded relative mb-4" role="alert">
               <strong className="font-bold">שגיאה: </strong>
@@ -420,7 +420,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                     <label className="flex items-center">
                       <input
                         type="checkbox"
-                        className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800"
+                        className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
                         checked={value}
                         onChange={(e) => onChange(e.target.checked)}
                         {...field}
@@ -446,7 +446,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                             type="number"
                             min={1}
                             max={numPages || 1}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800 text-gray-100"
+                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                           />
@@ -464,7 +464,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                           <input
                             type="number"
                             min={0}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800 text-gray-100"
+                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           />
@@ -482,7 +482,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                       control={control}
                       render={({ field }) => (
                         <select
-                          className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800 text-gray-100"
+                          className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
                           {...field}
                         >
                           {positionOptions.map((option) => (
@@ -505,7 +505,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         control={control}
                         render={({ field }) => (
                           <select
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800 text-gray-100"
+                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
                             {...field}
                           >
                             {fontOptions.map((option) => (
@@ -529,7 +529,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                             type="number"
                             min={8}
                             max={24}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800 text-gray-100"
+                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 12)}
                           />
@@ -549,7 +549,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         render={({ field }) => (
                           <input
                             type="color"
-                            className="w-full h-8 rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800"
+                            className="w-full h-8 rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
                             {...field}
                           />
                         )}
@@ -563,7 +563,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                           <label className="flex items-center">
                             <input
                               type="checkbox"
-                              className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800"
+                              className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
                               checked={value}
                               onChange={(e) => onChange(e.target.checked)}
                               {...field}
@@ -589,7 +589,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                     <label className="flex items-center">
                       <input
                         type="checkbox"
-                        className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800"
+                        className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
                         checked={value}
                         onChange={(e) => onChange(e.target.checked)}
                         {...field}
@@ -612,7 +612,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                       render={({ field }) => (
                         <textarea
                           rows={2}
-                          className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800 text-gray-100"
+                          className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
                           placeholder="הזן את טקסט הכותרת כאן..."
                           {...field}
                         />
@@ -628,7 +628,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         <label className="flex items-center">
                           <input
                             type="checkbox"
-                            className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800"
+                            className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
                             checked={value}
                             onChange={(e) => onChange(e.target.checked)}
                             {...field}
@@ -652,7 +652,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                             type="number"
                             min={0}
                             step={0.1}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800 text-gray-100"
+                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 50)}
                           />
@@ -671,7 +671,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                             type="number"
                             min={0}
                             step={0.1}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800 text-gray-100"
+                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 50)}
                           />
@@ -690,7 +690,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         control={control}
                         render={({ field }) => (
                           <select
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800 text-gray-100"
+                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
                             {...field}
                           >
                             {fontOptions.map((option) => (
@@ -714,7 +714,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                             type="number"
                             min={8}
                             max={36}
-                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800 text-gray-100"
+                            className="w-full rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900 text-gray-100"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 14)}
                           />
@@ -734,7 +734,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                         render={({ field }) => (
                           <input
                             type="color"
-                            className="w-full h-8 rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800"
+                            className="w-full h-8 rounded-md border-gray-700 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
                             {...field}
                           />
                         )}
@@ -748,7 +748,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                           <label className="flex items-center">
                             <input
                               type="checkbox"
-                              className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-800"
+                              className="rounded border-gray-700 text-blue-600 shadow-sm focus:border-blue-600 focus:ring-blue-600 bg-gray-900"
                               checked={value}
                               onChange={(e) => onChange(e.target.checked)}
                               {...field}
@@ -792,7 +792,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
         </div>
 
         {/* PDF Preview */}
-        <div className="bg-gray-900 rounded-xl p-4">
+        <div className="bg-gray-950 rounded-xl p-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium text-gray-100">תצוגה מקדימה</h3>
             <button
@@ -803,14 +803,14 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
               הורד PDF
             </button>
           </div>
-          <div className="w-full h-[calc(100vh-8rem)] relative bg-gray-800 rounded-lg p-4">
+          <div className="w-full h-[calc(100vh-8rem)] relative bg-gray-900 rounded-lg p-4">
             {isLoading && (
-              <div className="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+              <div className="absolute inset-0 bg-gray-950 bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             )}
             {pdfBytes && (
-              <div className="w-full h-full flex flex-col items-center bg-gray-800 rounded-lg">
+              <div className="w-full h-full flex flex-col items-center bg-gray-900 rounded-lg">
                 <Document
                   file={new Blob([modifiedPdfBytes || pdfBytes])}
                   onLoadSuccess={onDocumentLoadSuccess}
@@ -821,7 +821,7 @@ export const PDFEditor: React.FC<PDFEditorProps> = ({
                     </div>
                   }
                 >
-                  <div className="bg-gray-800 rounded-lg flex justify-center">
+                  <div className="bg-gray-900 rounded-lg flex justify-center">
                     <Page
                       pageNumber={pageNumber}
                       width={Math.min(window.innerWidth * 0.4, 800)}
